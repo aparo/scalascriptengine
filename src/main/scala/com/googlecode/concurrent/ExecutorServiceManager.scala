@@ -193,7 +193,7 @@ trait Scheduling
 	def schedule[R](runAt: DateTime): (=> R) => ScheduledFuture[R] = {
 		val dt = runAt.getMillis - System.currentTimeMillis
 		if (dt < 0) throw new IllegalArgumentException("next run time is in the past : %s".format(runAt))
-		schedule(dt, TimeUnit.MILLISECONDS) _
+		schedule[R](dt, TimeUnit.MILLISECONDS) _
 	}
 
 	/**

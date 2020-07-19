@@ -1,14 +1,14 @@
 package com.googlecode.scalascriptengine
 
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 /**
   * @author kostantinos.kougios
   *
   *         5 Jan 2012
   */
-class ConstructorsSuite extends FunSuite
+class ConstructorsSuite extends AnyFunSuite
 {
 	val constructors = new Constructors(classOf[ConstructorsSuiteTest])
 

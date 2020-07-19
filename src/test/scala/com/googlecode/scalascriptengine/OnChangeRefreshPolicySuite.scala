@@ -3,15 +3,15 @@ package com.googlecode.scalascriptengine
 import java.io.File
 
 import com.googlecode.scalascriptengine.scalascriptengine._
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 /**
  * @author kostantinos.kougios
  *
  *         25 Dec 2011
  */
-class OnChangeRefreshPolicySuite extends FunSuite
+class OnChangeRefreshPolicySuite extends AnyFunSuite
 {
 
 	val sourceDir = new File("testfiles/versions")
@@ -80,7 +80,7 @@ class OnChangeRefreshPolicySuite extends FunSuite
 		sse.versionNumber should be(1)
 		copyFromSource(new File("testfiles/erroneous/ve"), destDir)
 		sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
-		Thread.sleep(2000)
+		Thread.sleep(1000)
 		sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
 		sse.versionNumber should be(1)
 
@@ -155,7 +155,7 @@ class OnChangeRefreshPolicySuite extends FunSuite
 		sse.versionNumber should be(1)
 		copyFromSource(new File(sourceDir, "v2"), destDir)
 		sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
-		Thread.sleep(2100)
+		Thread.sleep(3100)
 		sse.newInstance[TestClassTrait]("reload.Reload").result should be("v2")
 		sse.versionNumber should be(2)
 	}

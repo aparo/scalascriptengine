@@ -5,15 +5,15 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicLong}
 
 import com.googlecode.concurrent.ExecutorServiceManager
 import com.googlecode.scalascriptengine.scalascriptengine._
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 /**
   * @author kostantinos.kougios
   *
   *         27 Dec 2011
   */
-class EndToEndSuite extends FunSuite
+class EndToEndSuite extends AnyFunSuite
 {
 	val sourceDir = new File("testfiles/EndToEndSuite")
 

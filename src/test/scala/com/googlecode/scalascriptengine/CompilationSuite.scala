@@ -3,15 +3,15 @@ package com.googlecode.scalascriptengine
 import java.io.File
 
 import com.googlecode.scalascriptengine.scalascriptengine._
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 /**
   * @author kostantinos.kougios
   *
   *         22 Dec 2011
   */
-class CompilationSuite extends FunSuite
+class CompilationSuite extends AnyFunSuite
 {
 	val sourceDir = new File("testfiles/CompilationSuite")
 	val versionsDir = new File("testfiles/versions")

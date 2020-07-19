@@ -8,7 +8,7 @@ package com.googlecode.scalascriptengine
  */
 object StressTestPermGen extends App
 {
-	(1 to 1000000).par.foreach {
+	(1 to 1000000).foreach {
 		i =>
 			val ect = EvalCode.with1Arg[String, Int]("s", s"s.toInt+${i}")
 

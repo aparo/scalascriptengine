@@ -5,7 +5,7 @@ import java.io.File
 import com.googlecode.scalascriptengine.{Logging, ScalaScriptEngine, SourcePath}
 
 import scala.reflect.internal.util.Position
-import scala.tools.nsc.reporters.AbstractReporter
+import scala.tools.nsc.reporters.FilteringReporter
 import scala.tools.nsc.{Global, Phase, Settings, SubComponent}
 
 /**
@@ -99,18 +99,16 @@ class CompilerManager(sourcePaths: List[SourcePath], classPaths: Set[File], sse:
 
 class CompilationError(msg: String) extends RuntimeException(msg)
 
-private class CompilationReporter(val settings: Settings) extends AbstractReporter with Logging
+private class CompilationReporter(val settings: Settings) extends FilteringReporter with Logging
 {
+
 	val errors = List.newBuilder[String]
 
-	def display(pos: Position, msg: String, severity: Severity) {
+	override def doReport(pos: Position, msg: String, severity: Severity): Unit = {
 		val m = Position.formatMessage(pos, msg, true)
 		if (severity == ERROR)
 			errors += m
 		else warn(m)
 	}
 
-	def displayPrompt() {
-
-	}
 }

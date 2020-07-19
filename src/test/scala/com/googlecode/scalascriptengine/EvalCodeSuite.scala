@@ -3,8 +3,8 @@ package com.googlecode.scalascriptengine
 import java.util.concurrent.Executors
 
 import com.googlecode.scalascriptengine.classloading.ClassLoaderConfig
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
   *
   *         20 Aug 2012
   */
-class EvalCodeSuite extends FunSuite with ScalaFutures with IntegrationPatience
+class EvalCodeSuite extends AnyFunSuite with ScalaFutures with IntegrationPatience
 {
 	test("create list") {
 		val ect = EvalCode.with1Arg[Int => Int, List[Int]]("f", "List(f(5),f(10))")

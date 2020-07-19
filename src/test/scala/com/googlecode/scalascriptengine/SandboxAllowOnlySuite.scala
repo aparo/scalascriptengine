@@ -4,15 +4,15 @@ import java.io.File
 import java.security.AccessControlException
 
 import com.googlecode.scalascriptengine.classloading.ClassLoaderConfig
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 /**
  * @author kostantinos.kougios
  *
  *         12 Oct 2012
  */
-class SandboxAllowOnlySuite extends FunSuite
+class SandboxAllowOnlySuite extends AnyFunSuite
 {
 	val sourceDir = new File("testfiles/SandboxAllowOnlySuite")
 	val allowedPackages = Set(

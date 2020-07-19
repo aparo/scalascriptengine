@@ -38,14 +38,14 @@ publishTo := {
 		Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
-scalaVersion := "2.12.12"
+scalaVersion := "2.13.2"
 
 libraryDependencies ++= Seq(
 	"commons-io" % "commons-io" % "2.7" % Test,
 	"org.slf4j" % "slf4j-api" % "1.6.4",
 	"ch.qos.logback" % "logback-classic" % "1.2.3",
 	"org.scala-lang" % "scala-reflect" % scalaVersion.value,
-	"org.scalatest" %% "scalatest" % "3.0.3",
+	"org.scalatest" %% "scalatest" % "3.2.0",
 	"org.scala-lang" % "scala-compiler" % scalaVersion.value,
 	"joda-time" % "joda-time" % "2.10.6"
 )

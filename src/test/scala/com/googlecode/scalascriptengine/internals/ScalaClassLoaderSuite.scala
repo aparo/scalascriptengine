@@ -5,14 +5,15 @@ import java.io.File
 import com.googlecode.scalascriptengine.classloading.{ClassLoaderConfig, ScalaClassLoader}
 import com.googlecode.scalascriptengine.scalascriptengine._
 import com.googlecode.scalascriptengine.{TestClassTrait, TestParamTrait}
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
 /**
  * @author kostantinos.kougios
  *
  *         23 Dec 2011
  */
-class ScalaClassLoaderSuite extends FunSuite with Matchers
+class ScalaClassLoaderSuite extends AnyFunSuite with Matchers
 {
 	val sourceDir = new File("testfiles/ScalaClassLoaderSuite")
 	// parent classloader will contain scala-lib and all test-compiled classes

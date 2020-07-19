@@ -2,15 +2,15 @@ package com.googlecode.scalascriptengine
 
 import java.io.File
 
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 /**
   * @author kostantinos.kougios
   *
   *         2 Jan 2012
   */
-class EnhancersSuite extends FunSuite
+class EnhancersSuite extends AnyFunSuite
 {
 	val sourceDir = new File("testfiles/FromClasspathFirst")
 
