@@ -2,10 +2,10 @@ package com.googlecode.scalascriptengine
 
 import java.io.File
 import java.net.URLClassLoader
+import java.time.OffsetDateTime
 
 import com.googlecode.scalascriptengine.classloading.ScalaClassLoader
 import com.googlecode.scalascriptengine.internals.{CompilerManager, LastModMap}
-import org.joda.time.DateTime
 
 /**
  * The implementation of the script engine.
@@ -40,98 +40,90 @@ import org.joda.time.DateTime
  *
  *         22 Dec 2011
  */
-class ScalaScriptEngine(val config: Config) extends Logging
-{
+class ScalaScriptEngine(val config: Config) extends Logging {
 
-	private def compileManager = new CompilerManager(config.sourcePaths, config.compilationClassPaths, this)
+  private def compileManager = new CompilerManager(config.sourcePaths, config.compilationClassPaths, this)
 
-	// codeversion is initialy to version 0 which is not usable. 
-	@volatile private var codeVersion: CodeVersion = new CodeVersion
-	{
-		override def version: Int = 0
+  // codeversion is initialy to version 0 which is not usable.
+  @volatile private var codeVersion: CodeVersion = new CodeVersion {
+    override def version: Int = 0
 
-		override def classLoader: ScalaClassLoader = throw new IllegalStateException("CodeVersion not yet ready.")
+    override def classLoader: ScalaClassLoader = throw new IllegalStateException("CodeVersion not yet ready.")
 
-		override def files: List[SourceFile] = Nil
+    override def files: List[SourceFile] = Nil
 
-		override def sourceFiles = Map[File, SourceFile]()
+    override def sourceFiles = Map[File, SourceFile]()
 
-		override def get[T](className: String): Class[T] = throw new IllegalStateException("CodeVersion not yet ready.")
+    override def get[T](className: String): Class[T] = throw new IllegalStateException("CodeVersion not yet ready.")
 
-		override def newInstance[T](className: String): T = throw new IllegalStateException("CodeVersion not yet ready.")
+    override def newInstance[T](className: String): T = throw new IllegalStateException("CodeVersion not yet ready.")
 
-		override def constructors[T](className: String) = throw new IllegalStateException("CodeVersion not yet ready.")
-	}
+    override def constructors[T](className: String) = throw new IllegalStateException("CodeVersion not yet ready.")
+  }
 
-	@volatile private var _compilationStatus = CompilationStatus.notYetReady
+  @volatile private var _compilationStatus = CompilationStatus.notYetReady
 
-	def currentVersion = codeVersion
+  def currentVersion = codeVersion
 
-	def versionNumber = codeVersion.version
+  def versionNumber = codeVersion.version
 
-	def compilationStatus = _compilationStatus
+  def compilationStatus = _compilationStatus
 
-	/*
+  /*
 	 * refreshes the codeversion by scanning the source folders for changed source files. If any are
 	 * found, then a compilation is triggered.
-	 * 
+	 *
 	 * This method is not thread safe (but refresh policies ensure calling this only once at each time)
 	 */
-	def refresh: CodeVersion = {
+  def refresh: CodeVersion = {
 
-		_compilationStatus = CompilationStatus.started
+    _compilationStatus = CompilationStatus.started
 
-		val allChangedFiles = config.sourcePaths.flatMap(paths => allChanged(paths))
-		_compilationStatus.checkStop
-		val result = if (allChangedFiles.isEmpty)
-			codeVersion
-		else {
-			debug("refreshing changed files %s".format(allChangedFiles))
-			val sourceFilesSet = allChangedFiles.map(f => SourceFile(f))
-			_compilationStatus.checkStop
+    val allChangedFiles = config.sourcePaths.flatMap(paths => allChanged(paths))
+    _compilationStatus.checkStop
+    val result =
+      if (allChangedFiles.isEmpty)
+        codeVersion
+      else {
+        debug("refreshing changed files %s".format(allChangedFiles))
+        val sourceFilesSet = allChangedFiles.map(f => SourceFile(f))
+        _compilationStatus.checkStop
 
-			def sourceFiles = sourceFilesSet.map(s => (s.file, s)).toMap
+        def sourceFiles = sourceFilesSet.map(s => (s.file, s)).toMap
 
-			try {
-				_compilationStatus.checkStop
-				compileManager.compile(allChangedFiles.map(_.getAbsolutePath))
-			} catch {
-				case e: Throwable =>
-					if (versionNumber > 0) {
-						// update fileset to this codeversion to avoid
-						// continuously compiling problematic code
-						codeVersion = CodeVersionImpl(
-							codeVersion.version,
-							sourceFilesSet,
-							codeVersion.classLoader,
-							sourceFiles)
-					}
-					_compilationStatus = CompilationStatus.failed(_compilationStatus)
-					throw e
-			}
-			_compilationStatus.checkStop
-			val classLoader = createClassLoader
-			debug("done refreshing")
-			codeVersion = CodeVersionImpl(
-				codeVersion.version + 1,
-				sourceFilesSet,
-				classLoader,
-				sourceFiles)
-			codeVersion
-		}
+        try {
+          _compilationStatus.checkStop
+          compileManager.compile(allChangedFiles.map(_.getAbsolutePath))
+        } catch {
+          case e: Throwable =>
+            if (versionNumber > 0) {
+              // update fileset to this codeversion to avoid
+              // continuously compiling problematic code
+              codeVersion = CodeVersionImpl(codeVersion.version, sourceFilesSet, codeVersion.classLoader, sourceFiles)
+            }
+            _compilationStatus = CompilationStatus.failed(_compilationStatus)
+            throw e
+        }
+        _compilationStatus.checkStop
+        val classLoader = createClassLoader
+        debug("done refreshing")
+        codeVersion = CodeVersionImpl(codeVersion.version + 1, sourceFilesSet, classLoader, sourceFiles)
+        codeVersion
+      }
 
-		_compilationStatus = CompilationStatus.completed(_compilationStatus)
-		config.compilationListeners.foreach(_(result))
-		result
-	}
+    _compilationStatus = CompilationStatus.completed(_compilationStatus)
+    config.compilationListeners.foreach(_(result))
+    result
+  }
 
-	protected def createClassLoader = ScalaClassLoader(
-		config.sourcePaths.map(_.targetDir).toSet,
-		config.scalaSourceDirs.toSet ++ config.classLoadingClassPaths,
-		config.parentClassLoader,
-		config.classLoaderConfig)
+  protected def createClassLoader = ScalaClassLoader(
+    config.sourcePaths.map(_.targetDir).toSet,
+    config.scalaSourceDirs.toSet ++ config.classLoadingClassPaths,
+    config.parentClassLoader,
+    config.classLoaderConfig
+  )
 
-	/**
+  /**
 	 * returns the Class[T] for className
 	 *
 	 * Can throw ClassNotFoundException if the class is not present.
@@ -139,9 +131,9 @@ class ScalaScriptEngine(val config: Config) extends Logging
 	 * Can trigger a compilation in the background or foreground,
 	 * depending on the refresh policy.
 	 */
-	def get[T](className: String): Class[T] = codeVersion.get(className)
+  def get[T](className: String): Class[T] = codeVersion.get(className)
 
-	/**
+  /**
 	 * returns Constructors, this allows easy instantiation of the class
 	 * using up to 4 constructor arguments.
 	 *
@@ -151,178 +143,180 @@ class ScalaScriptEngine(val config: Config) extends Logging
 	 * constructor will always create instances of that codeversion and will not
 	 * reflect updates to the codeversion.
 	 */
-	def constructors[T](className: String): Constructors[T] = new Constructors(get(className))
+  def constructors[T](className: String): Constructors[T] = new Constructors(get(className))
 
-	/**
+  /**
 	 * returns a new instance of className. The new instance is always of the
 	 * latest codeversion.
 	 */
-	def newInstance[T](className: String): T = get[T](className).newInstance
+  def newInstance[T](className: String): T = get[T](className).newInstance
 
-	/**
+  /**
 	 * please make sure outputDir is valid!!! If you used one of the factory
 	 * methods to create an instance of the script engine, the output dir will
 	 * be in the tmp directory.
 	 */
-	def deleteAllClassesInOutputDirectory() = {
-		def deleteAllClassesInOutputDirectory(dir: File) {
-			dir.listFiles.filter(_.getName.endsWith(".class")).foreach(_.delete)
-			dir.listFiles.filter(_.isDirectory).foreach(d => deleteAllClassesInOutputDirectory(d))
-		}
-		config.targetDirs.foreach {
-			d =>
-				deleteAllClassesInOutputDirectory(d)
-		}
-	}
+  def deleteAllClassesInOutputDirectory():Unit = {
+    def deleteAllClassesInOutputDirectory(dir: File) {
+      dir.listFiles.filter(_.getName.endsWith(".class")).foreach(_.delete)
+      dir.listFiles.filter(_.isDirectory).foreach(d => deleteAllClassesInOutputDirectory(d))
+    }
+    config.targetDirs.foreach { d =>
+      deleteAllClassesInOutputDirectory(d)
+    }
+  }
 
-	private val modified = new LastModMap
+  private val modified = new LastModMap
 
-	/**
+  /**
 	 * @param clz       the full class name
 	 * @return          true if the scala file was modified since the last compilation
 	 */
-	def isModified(sourcePath: SourcePath, clz: String): Boolean = {
-		val f = clz.replace('.', '/')
-		val scalaName = f + ".scala"
-		sourcePath.sources.exists {
-			source =>
-				val scalaFile = new File(source, scalaName)
-				modified.isMod(scalaFile)
-		}
-	}
+  def isModified(sourcePath: SourcePath, clz: String): Boolean = {
+    val f = clz.replace('.', '/')
+    val scalaName = f + ".scala"
+    sourcePath.sources.exists { source =>
+      val scalaFile = new File(source, scalaName)
+      modified.isMod(scalaFile)
+    }
+  }
 
-	/**
+  /**
 	 * marks all source files as modified, hence it will recompile all the source
 	 * files on the next call to refresh()
 	 */
-	def markAllAsModified() {
-		modified.markAllAsModified()
-	}
+  def markAllAsModified() {
+    modified.markAllAsModified()
+  }
 
-	/**
+  /**
 	 * forces a clean build of all source files
 	 *
 	 * @return	the new CodeVersion
 	 */
-	def cleanBuild: CodeVersion = {
-		deleteAllClassesInOutputDirectory()
-		markAllAsModified()
-		refresh
-	}
+  def cleanBuild: CodeVersion = {
+    deleteAllClassesInOutputDirectory()
+    markAllAsModified()
+    refresh
+  }
 
-	/**
+  /**
 	 * finds all changed sources in the this sourcePath
 	 * @param sourcePath	SourcePath to scan
 	 * @return				all changed files
 	 */
-	private def allChanged(sourcePath: SourcePath): Set[File] = {
+  private def allChanged(sourcePath: SourcePath): Set[File] = {
 
-		def scan(src: File, clzDir: File): Set[File] = {
-			val srcIsDir = src.isDirectory
-			val all = if (srcIsDir) src.listFiles else Array(src)
-			val mod = if (srcIsDir) all.filter(_.getName.endsWith(".scala"))
-				.filter {
-				scalaFile =>
-					modified.isMod(scalaFile)
-			}.toSet
-			else Set(src)
+    def scan(src: File, clzDir: File): Set[File] = {
+      val srcIsDir = src.isDirectory
+      val all = if (srcIsDir) src.listFiles else Array(src)
+      val mod =
+        if (srcIsDir)
+          all
+            .filter(_.getName.endsWith(".scala"))
+            .filter { scalaFile =>
+              modified.isMod(scalaFile)
+            }
+            .toSet
+        else Set(src)
 
-			val sub = all.filter(_.isDirectory).flatMap {
-				dir =>
-					scan(dir, new File(clzDir, dir.getName))
-			}
+      val sub = all.filter(_.isDirectory).flatMap { dir =>
+        scan(dir, new File(clzDir, dir.getName))
+      }
 
-			mod ++ sub
-		}
+      mod ++ sub
+    }
 
-		val all = sourcePath.sources.flatMap(source => scan(source, sourcePath.targetDir))
-		all.foreach(modified.updated)
-		all
-	}
+    val all = sourcePath.sources.flatMap(source => scan(source, sourcePath.targetDir))
+    all.foreach(modified.updated)
+    all
+  }
 }
 
 /**
  * the companion object provides a lot of useful factory methods to create a script engine
  * with sensible defaults.
  */
-object ScalaScriptEngine
-{
-	def tmpOutputFolder = {
-		val dir = new File(System.getProperty("java.io.tmpdir"), "scala-script-engine-classes")
-		dir.mkdir
-		dir
-	}
+object ScalaScriptEngine {
+  def tmpOutputFolder = {
+    val dir = new File(System.getProperty("java.io.tmpdir"), "scala-script-engine-classes")
+    dir.mkdir
+    dir
+  }
 
-	def currentClassPath = {
-		// this tries to detect the classpath, if it doesn't work
-		// for you, please email me or open an issue explaining your
-		// usecase.
-		def cp(cl: ClassLoader): Set[File] = cl match {
-			case ucl: URLClassLoader => ucl.getURLs.map(u => new File(u.getFile)).toSet ++ cp(ucl.getParent)
-			case _: ClassLoader => Set()
-			case null => Set()
-		}
-		cp(Thread.currentThread.getContextClassLoader) ++ System.getProperty("java.class.path").split(File.pathSeparator).map(p => new File(p)).toSet
-	}
+  def currentClassPath = {
+    // this tries to detect the classpath, if it doesn't work
+    // for you, please email me or open an issue explaining your
+    // usecase.
+    def cp(cl: ClassLoader): Set[File] = cl match {
+      case ucl: URLClassLoader => ucl.getURLs.map(u => new File(u.getFile)).toSet ++ cp(ucl.getParent)
+      case _: ClassLoader      => Set()
+      case null                => Set()
+    }
+    cp(Thread.currentThread.getContextClassLoader) ++ System
+      .getProperty("java.class.path")
+      .split(File.pathSeparator)
+      .map(p => new File(p))
+      .toSet
+  }
 
-	def defaultConfig(sourcePath: File) = Config(
-		List(SourcePath(Set(sourcePath))),
-		currentClassPath,
-		Set()
-	)
+  def defaultConfig(sourcePath: File) = Config(
+    List(SourcePath(Set(sourcePath))),
+    currentClassPath,
+    Set()
+  )
 
-	/**
+  /**
 	 * returns an instance of the engine. Refreshes must be done manually
 	 */
-	def withoutRefreshPolicy(
-		sourcePaths: List[SourcePath],
-		compilationClassPaths: Set[File],
-		classLoadingClassPaths: Set[File]
-		): ScalaScriptEngine =
-		new ScalaScriptEngine(Config(sourcePaths, compilationClassPaths, classLoadingClassPaths))
+  def withoutRefreshPolicy(
+    sourcePaths: List[SourcePath],
+    compilationClassPaths: Set[File],
+    classLoadingClassPaths: Set[File]
+  ): ScalaScriptEngine =
+    new ScalaScriptEngine(Config(sourcePaths, compilationClassPaths, classLoadingClassPaths))
 
-	/**
+  /**
 	 * returns an instance of the engine. Refreshes must be done manually
 	 */
-	def withoutRefreshPolicy(sourcePaths: List[SourcePath], compilationClassPaths: Set[File]): ScalaScriptEngine =
-		new ScalaScriptEngine(Config(sourcePaths, compilationClassPaths, Set()))
+  def withoutRefreshPolicy(sourcePaths: List[SourcePath], compilationClassPaths: Set[File]): ScalaScriptEngine =
+    new ScalaScriptEngine(Config(sourcePaths, compilationClassPaths, Set()))
 
-	/**
+  /**
 	 * returns an instance of the engine. Refreshes must be done manually
 	 */
-	def withoutRefreshPolicy(sourcePath: SourcePath, compilationClassPaths: Set[File]): ScalaScriptEngine =
-		withoutRefreshPolicy(Config(List(sourcePath), compilationClassPaths, Set()), compilationClassPaths)
+  def withoutRefreshPolicy(sourcePath: SourcePath, compilationClassPaths: Set[File]): ScalaScriptEngine =
+    withoutRefreshPolicy(Config(List(sourcePath), compilationClassPaths, Set()), compilationClassPaths)
 
-	def withoutRefreshPolicy(config: Config, compilationClassPaths: Set[File]): ScalaScriptEngine =
-		new ScalaScriptEngine(config)
+  def withoutRefreshPolicy(config: Config, compilationClassPaths: Set[File]): ScalaScriptEngine =
+    new ScalaScriptEngine(config)
 
-	/**
+  /**
 	 * returns an instance of the engine. Refreshes must be done manually
 	 */
-	def withoutRefreshPolicy(sourcePaths: List[SourcePath]): ScalaScriptEngine =
-		withoutRefreshPolicy(sourcePaths, currentClassPath)
+  def withoutRefreshPolicy(sourcePaths: List[SourcePath]): ScalaScriptEngine =
+    withoutRefreshPolicy(sourcePaths, currentClassPath)
 
-	/**
+  /**
 	 * returns an instance of the engine. Refreshes must be done manually
 	 */
-	def withoutRefreshPolicy(sourcePath: SourcePath): ScalaScriptEngine = withoutRefreshPolicy(List(sourcePath))
+  def withoutRefreshPolicy(sourcePath: SourcePath): ScalaScriptEngine = withoutRefreshPolicy(List(sourcePath))
 
-	/**
+  /**
 	 * periodically scans the source folders for changes. If a change is detected, a recompilation is
 	 * triggered. The new codeversion is used upon competion of the compilation.
 	 *
 	 * Please call refresh before using the engine for the first time.
 	 */
-	def timedRefresh(sourcePath: File, refreshEvery: () => DateTime): ScalaScriptEngine with TimedRefresh =
-		timedRefresh(defaultConfig(sourcePath), refreshEvery)
+  def timedRefresh(sourcePath: File, refreshEvery: () => OffsetDateTime): ScalaScriptEngine with TimedRefresh =
+    timedRefresh(defaultConfig(sourcePath), refreshEvery)
 
-	def timedRefresh(config: Config, refreshEvery: () => DateTime): ScalaScriptEngine with TimedRefresh =
-		new ScalaScriptEngine(config) with TimedRefresh
-		{
-			def rescheduleAt = refreshEvery()
-		}
+  def timedRefresh(config: Config, refreshEvery: () => OffsetDateTime): ScalaScriptEngine with TimedRefresh =
+    new ScalaScriptEngine(config) with TimedRefresh {
+      def rescheduleAt = refreshEvery()
+    }
 
-	/**
+  /**
 	 * creates a ScalaScriptEngine with the following behaviour:
 	 *
 	 * if a change in a requested class source file is detected, the source path
@@ -335,10 +329,10 @@ object ScalaScriptEngine
 	 * @param sourcePath	the path where the scala source files are.
 	 * @return				the ScalaScriptEngine
 	 */
-	def onChangeRefresh(sourcePath: File): ScalaScriptEngine with OnChangeRefresh =
-		onChangeRefresh(sourcePath, 0)
+  def onChangeRefresh(sourcePath: File): ScalaScriptEngine with OnChangeRefresh =
+    onChangeRefresh(sourcePath, 0)
 
-	/**
+  /**
 	 * creates a ScalaScriptEngine with the following behaviour:
 	 *
 	 * if a change in a requested class source file is detected, the source path
@@ -353,16 +347,15 @@ object ScalaScriptEngine
 	 *                                        once per recheckEveryInMillis milliseconds.
 	 * @return								the ScalaScriptEngine
 	 */
-	def onChangeRefresh(sourcePath: File, recheckSourceEveryDtInMillis: Long): ScalaScriptEngine with OnChangeRefresh =
-		onChangeRefresh(defaultConfig(sourcePath), recheckSourceEveryDtInMillis)
+  def onChangeRefresh(sourcePath: File, recheckSourceEveryDtInMillis: Long): ScalaScriptEngine with OnChangeRefresh =
+    onChangeRefresh(defaultConfig(sourcePath), recheckSourceEveryDtInMillis)
 
-	def onChangeRefresh(config: Config, recheckSourceEveryDtInMillis: Long): ScalaScriptEngine with OnChangeRefresh =
-		new ScalaScriptEngine(config) with OnChangeRefresh with RefreshSynchronously
-		{
-			val recheckEveryMillis = recheckSourceEveryDtInMillis
-		}
+  def onChangeRefresh(config: Config, recheckSourceEveryDtInMillis: Long): ScalaScriptEngine with OnChangeRefresh =
+    new ScalaScriptEngine(config) with OnChangeRefresh with RefreshSynchronously {
+      val recheckEveryMillis = recheckSourceEveryDtInMillis
+    }
 
-	/**
+  /**
 	 * similar to onChangeRefresh, but the compilation occurs in the background.
 	 * While the compilation occurs, the ScalaScriptEngine.get(className)
 	 * returns the existing version of the class without blocking.
@@ -371,10 +364,12 @@ object ScalaScriptEngine
 	 *
 	 * Before exiting, please call shutdown to shutdown the compilation thread
 	 */
-	def onChangeRefreshAsynchronously(sourcePath: File): ScalaScriptEngine with OnChangeRefresh with RefreshAsynchronously =
-		onChangeRefreshAsynchronously(sourcePath, 0)
+  def onChangeRefreshAsynchronously(
+    sourcePath: File
+  ): ScalaScriptEngine with OnChangeRefresh with RefreshAsynchronously =
+    onChangeRefreshAsynchronously(sourcePath, 0)
 
-	/**
+  /**
 	 * similar to onChangeRefresh, but the compilation occurs in the background.
 	 * While the compilation occurs, the ScalaScriptEngine.get(className)
 	 * returns the existing version of the class without blocking.
@@ -383,12 +378,17 @@ object ScalaScriptEngine
 	 *
 	 * Before exiting, please call shutdown to shutdown the compilation thread
 	 */
-	def onChangeRefreshAsynchronously(sourcePath: File, recheckEveryInMillis: Long): ScalaScriptEngine with OnChangeRefresh with RefreshAsynchronously =
-		onChangeRefreshAsynchronously(defaultConfig(sourcePath), recheckEveryInMillis)
+  def onChangeRefreshAsynchronously(
+    sourcePath: File,
+    recheckEveryInMillis: Long
+  ): ScalaScriptEngine with OnChangeRefresh with RefreshAsynchronously =
+    onChangeRefreshAsynchronously(defaultConfig(sourcePath), recheckEveryInMillis)
 
-	def onChangeRefreshAsynchronously(config: Config, recheckEveryInMillis: Long): ScalaScriptEngine with OnChangeRefresh with RefreshAsynchronously =
-		new ScalaScriptEngine(config) with OnChangeRefresh with RefreshAsynchronously
-		{
-			val recheckEveryMillis: Long = recheckEveryInMillis
-		}
+  def onChangeRefreshAsynchronously(
+    config: Config,
+    recheckEveryInMillis: Long
+  ): ScalaScriptEngine with OnChangeRefresh with RefreshAsynchronously =
+    new ScalaScriptEngine(config) with OnChangeRefresh with RefreshAsynchronously {
+      val recheckEveryMillis: Long = recheckEveryInMillis
+    }
 }

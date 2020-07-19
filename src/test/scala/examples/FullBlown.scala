@@ -2,7 +2,7 @@ package examples
 
 import java.io.File
 
-import com.googlecode.scalascriptengine.{Config, _}
+import com.googlecode.scalascriptengine.{ Config, _ }
 
 /**
  * This example shows how to instantiate the script engine without using the factory
@@ -23,36 +23,36 @@ import com.googlecode.scalascriptengine.{Config, _}
  *
  *         27 Dec 2011
  */
-object FullBlown extends App
-{
-	// the source directory
-	val sourceDir = new File("examplefiles/simple")
-	// compilation classpath
-	val compilationClassPath = ScalaScriptEngine.currentClassPath
-	// runtime classpath (empty). All other classes are loaded by the parent classloader
-	val runtimeClasspath = Set[File]()
-	// the output dir for compiled classes
-	val outputDir = new File(System.getProperty("java.io.tmpdir"), "scala-script-engine-classes")
-	outputDir.mkdir
+object FullBlown extends App {
+  // the source directory
+  val sourceDir = new File("examplefiles/simple")
+  // compilation classpath
+  val compilationClassPath = ScalaScriptEngine.currentClassPath
+  // runtime classpath (empty). All other classes are loaded by the parent classloader
+  val runtimeClasspath = Set[File]()
+  // the output dir for compiled classes
+  val outputDir = new File(System.getProperty("java.io.tmpdir"), "scala-script-engine-classes")
+  outputDir.mkdir
 
-	val sse = new ScalaScriptEngine(Config(
-		List(SourcePath(Set(sourceDir), outputDir)),
-		compilationClassPath,
-		runtimeClasspath
-	)) with RefreshAsynchronously with FromClasspathFirst
-	{
-		val recheckEveryMillis: Long = 1000 // each file will only be checked maximum once per second
-	}
+  val sse = new ScalaScriptEngine(
+    Config(
+      List(SourcePath(Set(sourceDir), outputDir)),
+      compilationClassPath,
+      runtimeClasspath
+    )
+  ) with RefreshAsynchronously with FromClasspathFirst {
+    val recheckEveryMillis: Long = 1000 // each file will only be checked maximum once per second
+  }
 
-	// delete all compiled classes (i.e. from previous runs)
-	sse.deleteAllClassesInOutputDirectory
-	// since the refresh occurs async, we need to do the 1st refresh otherwise initially my.TryMe
-	// class will not be found
-	sse.refresh
+  // delete all compiled classes (i.e. from previous runs)
+  sse.deleteAllClassesInOutputDirectory
+  // since the refresh occurs async, we need to do the 1st refresh otherwise initially my.TryMe
+  // class will not be found
+  sse.refresh
 
-	while (true) {
-		val t = sse.newInstance[TryMeTrait]("my.TryMe")
-		println("code version %d, result : %s".format(sse.versionNumber, t.result))
-		Thread.sleep(500)
-	}
+  while (true) {
+    val t = sse.newInstance[TryMeTrait]("my.TryMe")
+    println("code version %d, result : %s".format(sse.versionNumber, t.result))
+    Thread.sleep(500)
+  }
 }

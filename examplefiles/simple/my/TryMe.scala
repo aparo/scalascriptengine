@@ -1,17 +1,15 @@
 package my
 
-class TryMe extends TryMeTrait
-{
-	val r = "%d : change me while example runs!"
+class TryMe extends TryMeTrait {
+  val r = "%d : change me while example runs!"
 
-	override def result = {
-		import TryMe._
-		counter += 1
-		r.format(counter)
-	}
+  override def result = {
+    import TryMe._
+    counter += 1
+    r.format(counter)
+  }
 }
 
-object TryMe
-{
-	var counter = 0
+object TryMe {
+  var counter = 0
 }

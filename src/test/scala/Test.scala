@@ -1,4 +1,3 @@
-
 /**
  * used to test the scala class loader. Please comment out after
  * copying the class file to the testfiles directory.

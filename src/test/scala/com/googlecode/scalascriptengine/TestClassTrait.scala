@@ -7,17 +7,14 @@ package com.googlecode.scalascriptengine
  *
  *         22 Dec 2011
  */
-trait TestClassTrait
-{
-	def result: String
+trait TestClassTrait {
+  def result: String
 }
 
-trait TestParamTrait
-{
-	def result(tct: TestClassTrait): String
+trait TestParamTrait {
+  def result(tct: TestClassTrait): String
 }
 
-trait TestValTrait
-{
-	val x: Int
+trait TestValTrait {
+  val x: Int
 }

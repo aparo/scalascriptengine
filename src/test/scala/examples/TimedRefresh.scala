@@ -1,9 +1,9 @@
 package examples
 
 import java.io.File
+import java.time.OffsetDateTime
 
 import com.googlecode.scalascriptengine.ScalaScriptEngine
-import org.joda.time.DateTime
 
 /**
  * demonstrates the timed refresh policy. A background thread scans the
@@ -15,14 +15,13 @@ import org.joda.time.DateTime
  *
  *         27 Dec 2011
  */
-object TimedRefresh extends App
-{
-	val sourceDir = new File("examplefiles/simple")
-	val sse = ScalaScriptEngine.timedRefresh(sourceDir, () => DateTime.now.plusSeconds(1))
-	sse.refresh
-	while (true) {
-		val t = sse.newInstance[TryMeTrait]("my.TryMe")
-		println("code version %d, result : %s".format(sse.versionNumber, t.result))
-		Thread.sleep(500)
-	}
+object TimedRefresh extends App {
+  val sourceDir = new File("examplefiles/simple")
+  val sse = ScalaScriptEngine.timedRefresh(sourceDir, () => OffsetDateTime.now.plusSeconds(1))
+  sse.refresh
+  while (true) {
+    val t = sse.newInstance[TryMeTrait]("my.TryMe")
+    println("code version %d, result : %s".format(sse.versionNumber, t.result))
+    Thread.sleep(500)
+  }
 }

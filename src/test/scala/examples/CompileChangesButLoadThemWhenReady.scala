@@ -18,24 +18,23 @@ import com.googlecode.scalascriptengine.ScalaScriptEngine
  *
  *         26 Dec 2011
  */
-object CompileChangesButLoadThemWhenReady extends App
-{
-	val sourceDir = new File("examplefiles/simple")
-	val sse = ScalaScriptEngine.onChangeRefreshAsynchronously(sourceDir)
-	// because code changes are loaded async, we need to do a compilation
-	// before we request a class for the first time otherwise exceptions
-	// will be thrown till the 1st code version is compiled.
-	try {
-		sse.refresh
+object CompileChangesButLoadThemWhenReady extends App {
+  val sourceDir = new File("examplefiles/simple")
+  val sse = ScalaScriptEngine.onChangeRefreshAsynchronously(sourceDir)
+  // because code changes are loaded async, we need to do a compilation
+  // before we request a class for the first time otherwise exceptions
+  // will be thrown till the 1st code version is compiled.
+  try {
+    sse.refresh
 
-		while (true) {
-			val t = sse.newInstance[TryMeTrait]("my.TryMe")
-			println("code version %d, result : %s".format(sse.versionNumber, t.result))
-			Thread.sleep(500)
-		}
-	} finally {
-		// since the async policy uses a background thread, we need to shut
-		// it down when done.
-		sse.shutdown
-	}
+    while (true) {
+      val t = sse.newInstance[TryMeTrait]("my.TryMe")
+      println("code version %d, result : %s".format(sse.versionNumber, t.result))
+      Thread.sleep(500)
+    }
+  } finally {
+    // since the async policy uses a background thread, we need to shut
+    // it down when done.
+    sse.shutdown
+  }
 }

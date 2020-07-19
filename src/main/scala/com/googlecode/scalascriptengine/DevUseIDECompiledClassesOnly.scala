@@ -13,24 +13,23 @@ import com.googlecode.scalascriptengine.classloading.ScalaClassLoader
  * @author kostas.kougios
  *         Date: 18/02/13
  */
-trait DevUseIDECompiledClassesOnly extends ScalaScriptEngine
-{
+trait DevUseIDECompiledClassesOnly extends ScalaScriptEngine {
 
-	@volatile
-	private var cl: ScalaClassLoader = createClassLoader
-	@volatile
-	private var lastRefresh = System.currentTimeMillis
+  @volatile
+  private var cl: ScalaClassLoader = createClassLoader
+  @volatile
+  private var lastRefresh = System.currentTimeMillis
 
-	@volatile
-	var classVersion: Int = 0
+  @volatile
+  var classVersion: Int = 0
 
-	abstract override def get[T](className: String): Class[T] =
-		if (currentVersion.version == 0) {
-			if (System.currentTimeMillis - lastRefresh > 100) {
-				cl = createClassLoader
-				lastRefresh = System.currentTimeMillis
-				classVersion += 1
-			}
-			cl.get(className)
-		} else super.get(className)
+  abstract override def get[T](className: String): Class[T] =
+    if (currentVersion.version == 0) {
+      if (System.currentTimeMillis - lastRefresh > 100) {
+        cl = createClassLoader
+        lastRefresh = System.currentTimeMillis
+        classVersion += 1
+      }
+      cl.get(className)
+    } else super.get(className)
 }
