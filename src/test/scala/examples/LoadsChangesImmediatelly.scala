@@ -17,15 +17,14 @@ import com.googlecode.scalascriptengine.ScalaScriptEngine
  *
  *         26 Dec 2011
  */
-object LoadsChangesImmediatelly extends App
-{
+object LoadsChangesImmediatelly extends App {
 
-	val sourceDir = new File("examplefiles/simple")
-	val sse = ScalaScriptEngine.onChangeRefresh(sourceDir)
+  val sourceDir = new File("examplefiles/simple")
+  val sse = ScalaScriptEngine.onChangeRefresh(sourceDir)
 
-	while (true) {
-		val t = sse.newInstance[TryMeTrait]("my.TryMe")
-		println("code version %d, result : %s".format(sse.versionNumber, t.result))
-		Thread.sleep(1000)
-	}
+  while (true) {
+    val t = sse.newInstance[TryMeTrait]("my.TryMe")
+    println("code version %d, result : %s".format(sse.versionNumber, t.result))
+    Thread.sleep(1000)
+  }
 }

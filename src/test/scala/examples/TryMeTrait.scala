@@ -5,7 +5,6 @@ package examples
  *
  *         26 Dec 2011
  */
-trait TryMeTrait
-{
-	def result: String
+trait TryMeTrait {
+  def result: String
 }

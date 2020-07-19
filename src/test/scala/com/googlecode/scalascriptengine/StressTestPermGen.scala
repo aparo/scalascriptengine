@@ -6,14 +6,12 @@ package com.googlecode.scalascriptengine
  * @author	kostas.kougios
  *            Date: 16/05/14
  */
-object StressTestPermGen extends App
-{
-	(1 to 1000000).foreach {
-		i =>
-			val ect = EvalCode.with1Arg[String, Int]("s", s"s.toInt+${i}")
+object StressTestPermGen extends App {
+  (1 to 1000000).foreach { i =>
+    val ect = EvalCode.with1Arg[String, Int]("s", s"s.toInt+${i}")
 
-			// Now create a new instance of this function
-			val x = ect.newInstance
-			x("15")
-	}
+    // Now create a new instance of this function
+    val x = ect.newInstance
+    x("15")
+  }
 }

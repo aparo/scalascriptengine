@@ -16,14 +16,13 @@ package com.googlecode.scalascriptengine
  *
  *         2 Jan 2012
  */
-trait FromClasspathFirst extends ScalaScriptEngine
-{
-	abstract override def get[T](className: String): Class[T] =
-		if (currentVersion.version == 0) {
-			try {
-				Class.forName(className).asInstanceOf[Class[T]]
-			} catch {
-				case _: ClassNotFoundException => super.get(className)
-			}
-		} else super.get(className)
+trait FromClasspathFirst extends ScalaScriptEngine {
+  abstract override def get[T](className: String): Class[T] =
+    if (currentVersion.version == 0) {
+      try {
+        Class.forName(className).asInstanceOf[Class[T]]
+      } catch {
+        case _: ClassNotFoundException => super.get(className)
+      }
+    } else super.get(className)
 }

@@ -2,7 +2,7 @@ package com.googlecode.scalascriptengine
 
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
+import java.util.concurrent.atomic.{ AtomicBoolean, AtomicLong }
 
 import com.googlecode.concurrent.ExecutorServiceManager
 import org.joda.time.DateTime
@@ -16,17 +16,17 @@ import org.joda.time.DateTime
  *
  *         25 Dec 2011
  */
-trait TimedRefresh
-{
-	this: ScalaScriptEngine =>
-	def rescheduleAt: DateTime
+trait TimedRefresh {
+  this: ScalaScriptEngine =>
+  def rescheduleAt: DateTime
 
-	private val executor = ExecutorServiceManager.newScheduledThreadPool(1, e => error("error during recompilation of a source file", e))
-	executor.runPeriodically(rescheduleAt, Some(rescheduleAt)) {
-		refresh
-	}
+  private val executor =
+    ExecutorServiceManager.newScheduledThreadPool(1, e => error("error during recompilation of a source file", e))
+  executor.runPeriodically(rescheduleAt, Some(rescheduleAt)) {
+    refresh
+  }
 
-	def shutdown = executor.shutdown
+  def shutdown = executor.shutdown
 }
 
 /**
@@ -41,37 +41,33 @@ trait TimedRefresh
  * 1000 millis if code changes frequently (i.e. during dev) and
  * 30000 millis if code doesn't change that often (i.e. production)
  */
-protected trait OnChangeRefresh extends ScalaScriptEngine
-{
-	val recheckEveryMillis: Long
-	private val lastChecked = new ConcurrentHashMap[String, java.lang.Long]
-	private val timesTested = new AtomicLong
+protected trait OnChangeRefresh extends ScalaScriptEngine {
+  val recheckEveryMillis: Long
+  private val lastChecked = new ConcurrentHashMap[String, java.lang.Long]
+  private val timesTested = new AtomicLong
 
-	def numberOfTimesSourcesTestedForModifications = timesTested.get
+  def numberOfTimesSourcesTestedForModifications = timesTested.get
 
-	abstract override def get[T](className: String): Class[T] = {
-		val l = lastChecked.get(className)
-		val now = System.currentTimeMillis
-		if (l == null || recheckEveryMillis <= 0 || now - l > recheckEveryMillis) {
-			lastChecked.put(className, now)
-			val fileName = className.replace('.', '/') + ".scala"
-			val isModO = config.sourcePaths.find {
-				paths =>
-					paths.sources.exists {
-						source =>
-							new File(source, fileName).exists
-					}
-			}.map {
-				paths =>
-					isModified(paths, className)
-			}
-			timesTested.incrementAndGet
-			if (isModO.isDefined && isModO.get) doRefresh
-		}
-		super.get(className)
-	}
+  abstract override def get[T](className: String): Class[T] = {
+    val l = lastChecked.get(className)
+    val now = System.currentTimeMillis
+    if (l == null || recheckEveryMillis <= 0 || now - l > recheckEveryMillis) {
+      lastChecked.put(className, now)
+      val fileName = className.replace('.', '/') + ".scala"
+      val isModO = config.sourcePaths.find { paths =>
+        paths.sources.exists { source =>
+          new File(source, fileName).exists
+        }
+      }.map { paths =>
+        isModified(paths, className)
+      }
+      timesTested.incrementAndGet
+      if (isModO.isDefined && isModO.get) doRefresh
+    }
+    super.get(className)
+  }
 
-	def doRefresh: Unit
+  def doRefresh: Unit
 }
 
 /**
@@ -82,22 +78,21 @@ protected trait OnChangeRefresh extends ScalaScriptEngine
  * This is blocking during compilation and is not recommended to be used by
  * web servers. RefreshAsynchronously offers a much better alternative.
  */
-trait RefreshSynchronously extends ScalaScriptEngine with OnChangeRefresh
-{
-	private var lastCompiled: Long = 0
+trait RefreshSynchronously extends ScalaScriptEngine with OnChangeRefresh {
+  private var lastCompiled: Long = 0
 
-	override def doRefresh: Unit = {
-		// refresh only if not already refreshing
-		val time = System.currentTimeMillis
-		synchronized {
-			if (time > lastCompiled) try {
-				refresh
-			} finally {
-				// set lastCompile even in case of compilation errors
-				lastCompiled = time
-			}
-		}
-	}
+  override def doRefresh: Unit = {
+    // refresh only if not already refreshing
+    val time = System.currentTimeMillis
+    synchronized {
+      if (time > lastCompiled) try {
+        refresh
+      } finally {
+        // set lastCompile even in case of compilation errors
+        lastCompiled = time
+      }
+    }
+  }
 }
 
 /**
@@ -107,25 +102,24 @@ trait RefreshSynchronously extends ScalaScriptEngine with OnChangeRefresh
  * compilation will occur in the background and when done, the new
  * compiled version of the code will be used.
  */
-trait RefreshAsynchronously extends ScalaScriptEngine with OnChangeRefresh
-{
-	private val isCompiling = new AtomicBoolean(false)
-	private val executor = ExecutorServiceManager.newSingleThreadExecutor
+trait RefreshAsynchronously extends ScalaScriptEngine with OnChangeRefresh {
+  private val isCompiling = new AtomicBoolean(false)
+  private val executor = ExecutorServiceManager.newSingleThreadExecutor
 
-	override def doRefresh: Unit = {
-		// refresh only if not already refreshing
-		val c = isCompiling.getAndSet(true)
-		if (!c) executor.submit {
-			try {
-				refresh
-			} catch {
-				case e: Throwable =>
-					error("error during refresh", e)
-			} finally {
-				isCompiling.set(false)
-			}
-		}
-	}
+  override def doRefresh: Unit = {
+    // refresh only if not already refreshing
+    val c = isCompiling.getAndSet(true)
+    if (!c) executor.submit {
+      try {
+        refresh
+      } catch {
+        case e: Throwable =>
+          error("error during refresh", e)
+      } finally {
+        isCompiling.set(false)
+      }
+    }
+  }
 
-	def shutdown = executor.shutdown
+  def shutdown = executor.shutdown
 }

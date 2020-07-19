@@ -12,46 +12,45 @@ import org.scalatest.matchers.should.Matchers._
  *
  *         25 Dec 2011
  */
-class TimedRefreshPolicySuite extends AnyFunSuite
-{
+class TimedRefreshPolicySuite extends AnyFunSuite {
 
-	val sourceDir = new File("testfiles/versions")
+  val sourceDir = new File("testfiles/versions")
 
-	test("after compilation error, valid version is used") {
-		val destDir = newTmpDir("dynamicsrc")
-		val sse = ScalaScriptEngine.timedRefresh(destDir, () => DateTime.now.plusMillis(500))
-		sse.deleteAllClassesInOutputDirectory
-		try {
-			copyFromSource(new File(sourceDir, "v1/reload"), destDir)
-			sse.refresh
-			sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
-			copyFromSource(new File("testfiles/erroneous/ve/reload"), destDir)
-			Thread.sleep(3000)
-			sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
-			copyFromSource(new File(sourceDir, "v2/reload"), destDir)
-			Thread.sleep(3000)
-			sse.newInstance[TestClassTrait]("reload.Reload").result should be("v2")
-		} finally {
-			sse.shutdown
-		}
-	}
-	test("code modifications are reloaded in time") {
-		val destDir = newTmpDir("dynamicsrc")
-		val sse = ScalaScriptEngine.timedRefresh(destDir, () => DateTime.now.plusMillis(500))
-		sse.deleteAllClassesInOutputDirectory
-		try {
-			copyFromSource(new File(sourceDir, "v1/reload"), destDir)
-			sse.refresh
-			sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
-			copyFromSource(new File(sourceDir, "v2/reload"), destDir)
-			sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
-			Thread.sleep(3000)
-			sse.newInstance[TestClassTrait]("reload.Reload").result should be("v2")
-			copyFromSource(new File(sourceDir, "v1/reload"), destDir)
-			Thread.sleep(3000)
-			sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
-		} finally {
-			sse.shutdown
-		}
-	}
+  test("after compilation error, valid version is used") {
+    val destDir = newTmpDir("dynamicsrc")
+    val sse = ScalaScriptEngine.timedRefresh(destDir, () => DateTime.now.plusMillis(500))
+    sse.deleteAllClassesInOutputDirectory
+    try {
+      copyFromSource(new File(sourceDir, "v1/reload"), destDir)
+      sse.refresh
+      sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
+      copyFromSource(new File("testfiles/erroneous/ve/reload"), destDir)
+      Thread.sleep(3000)
+      sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
+      copyFromSource(new File(sourceDir, "v2/reload"), destDir)
+      Thread.sleep(3000)
+      sse.newInstance[TestClassTrait]("reload.Reload").result should be("v2")
+    } finally {
+      sse.shutdown
+    }
+  }
+  test("code modifications are reloaded in time") {
+    val destDir = newTmpDir("dynamicsrc")
+    val sse = ScalaScriptEngine.timedRefresh(destDir, () => DateTime.now.plusMillis(500))
+    sse.deleteAllClassesInOutputDirectory
+    try {
+      copyFromSource(new File(sourceDir, "v1/reload"), destDir)
+      sse.refresh
+      sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
+      copyFromSource(new File(sourceDir, "v2/reload"), destDir)
+      sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
+      Thread.sleep(3000)
+      sse.newInstance[TestClassTrait]("reload.Reload").result should be("v2")
+      copyFromSource(new File(sourceDir, "v1/reload"), destDir)
+      Thread.sleep(3000)
+      sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
+    } finally {
+      sse.shutdown
+    }
+  }
 }
