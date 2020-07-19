@@ -2,9 +2,9 @@ import sbt.Tests.{ Group, SubProcess }
 
 name := "scalascriptengine"
 
-organization := "com.googlecode.scalascriptengine"
+organization := "io.megl"
 
-version := "1.3.11"
+version := "1.3.12"
 
 pomIncludeRepository := { _ =>
   false
@@ -22,6 +22,12 @@ scmInfo := Some(
 )
 
 developers := List(
+  Developer(
+    id = "alberto.paro@gmail.com",
+    name = "Alberto Paro",
+    email = "alberto.paro@gmail.com",
+    url = url("https://github.com/aparo")
+  ),
   Developer(
     id = "kostas.kougios@googlemail.com",
     name = "Konstantinos Kougios",
@@ -45,7 +51,7 @@ scalaVersion := "2.13.2"
 libraryDependencies ++= Seq(
   "commons-io" % "commons-io" % "2.7" % Test,
   "org.slf4j" % "slf4j-api" % "1.6.4",
-  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
   "org.scalatest" %% "scalatest" % "3.2.0" % Test,
   "org.scala-lang" % "scala-compiler" % scalaVersion.value//,
