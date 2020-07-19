@@ -38,16 +38,16 @@ publishTo := {
 		Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
-scalaVersion := "2.12.2"
+scalaVersion := "2.12.12"
 
 libraryDependencies ++= Seq(
-	"commons-io" % "commons-io" % "2.1" % Test,
+	"commons-io" % "commons-io" % "2.7" % Test,
 	"org.slf4j" % "slf4j-api" % "1.6.4",
-	"ch.qos.logback" % "logback-classic" % "1.0.0",
-	"org.scala-lang" % "scala-reflect" % "2.12.2",
+	"ch.qos.logback" % "logback-classic" % "1.2.3",
+	"org.scala-lang" % "scala-reflect" % scalaVersion.value,
 	"org.scalatest" %% "scalatest" % "3.0.3",
-	"org.scala-lang" % "scala-compiler" % "2.12.2",
-	"joda-time" % "joda-time" % "2.9.9"
+	"org.scala-lang" % "scala-compiler" % scalaVersion.value,
+	"joda-time" % "joda-time" % "2.10.6"
 )
 
 // fork in test cause there are conflicts with sbt classpath
