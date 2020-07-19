@@ -66,6 +66,7 @@ def forkedJvmPerTest(testDefs: Seq[TestDefinition]) = testDefs.groupBy(
 }.toSeq
 
 //definedTests in Test returns all of the tests (that are by default under src/test/scala).
-testGrouping in Test <<= (definedTests in Test) map forkedJvmPerTest
+// testGrouping in Test <<= (definedTests in Test) map forkedJvmPerTest
+testGrouping in Test := {(definedTests in Test).map(forkedJvmPerTest)}.value
 
 testOptions in Test += Tests.Argument("-oF")
