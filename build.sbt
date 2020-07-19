@@ -47,9 +47,9 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-api" % "1.6.4",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-  "org.scalatest" %% "scalatest" % "3.2.0",
-  "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-  "joda-time" % "joda-time" % "2.10.6"
+  "org.scalatest" %% "scalatest" % "3.2.0" % Test,
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value//,
+//  "joda-time" % "joda-time" % "2.10.6"
 )
 
 // fork in test cause there are conflicts with sbt classpath

@@ -1,8 +1,7 @@
 package com.googlecode.concurrent
 
+import java.time.OffsetDateTime
 import java.util.concurrent._
-
-import org.joda.time.DateTime
 
 /**
  * manages executor instantiation, provides factory methods
@@ -170,10 +169,10 @@ trait Scheduling {
 	  * }
 	  * </code>
 	  */
-  def schedule[R](runAt: DateTime): (=> R) => ScheduledFuture[R] = {
-    val dt = runAt.getMillis - System.currentTimeMillis
+  def schedule[R](runAt: OffsetDateTime): (=> R) => ScheduledFuture[R] = {
+    val dt = runAt.toInstant.toEpochMilli - System.currentTimeMillis
     if (dt < 0) throw new IllegalArgumentException("next run time is in the past : %s".format(runAt))
-    schedule[R](dt, TimeUnit.MILLISECONDS) _
+    schedule[R](dt, TimeUnit.MILLISECONDS)
   }
 
   /**
@@ -195,7 +194,7 @@ trait Scheduling {
 	  *                 executed and if None the task will not be executed anymore.
 	  * @param f        the task
 	  */
-  def runPeriodically[R](firstRun: DateTime, process: Option[R] => Option[DateTime])(f: => R): Unit =
+  def runPeriodically[R](firstRun: OffsetDateTime, process: Option[R] => Option[OffsetDateTime])(f: => R): Unit =
     schedule(firstRun) {
       val r = try {
         Some(f)
@@ -243,7 +242,7 @@ trait Scheduling {
 	  *                       the task will not be executed anymore.
 	  * @param f              the task
 	  */
-  def runPeriodically[R](firstRun: DateTime, whenToReRun: => Option[DateTime])(f: => R): Unit =
+  def runPeriodically[R](firstRun: OffsetDateTime, whenToReRun: => Option[OffsetDateTime])(f: => R): Unit =
     schedule(firstRun) {
       try {
         f
@@ -263,22 +262,22 @@ trait Scheduling {
 trait Shutdown {
   protected val executorService: ExecutorService
 
-  def shutdown = executorService.shutdown
+  def shutdown():Unit = executorService.shutdown()
 
   def shutdownNow = executorService.shutdownNow
 
   def awaitTermination(timeout: Long, unit: TimeUnit): Unit = executorService.awaitTermination(timeout, unit)
 
-  def awaitTermination(timeoutWhen: DateTime): Unit =
-    awaitTermination(timeoutWhen.getMillis - System.currentTimeMillis, TimeUnit.MILLISECONDS)
+  def awaitTermination(timeoutWhen: OffsetDateTime): Unit =
+    awaitTermination(timeoutWhen.toInstant.toEpochMilli - System.currentTimeMillis, TimeUnit.MILLISECONDS)
 
   def shutdownAndAwaitTermination(waitTimeInSeconds: Int) {
-    shutdown
+    shutdown()
     awaitTermination(waitTimeInSeconds, TimeUnit.SECONDS)
   }
 
-  def shutdownAndAwaitTermination(timeoutWhen: DateTime) {
-    shutdown
+  def shutdownAndAwaitTermination(timeoutWhen: OffsetDateTime) {
+    shutdown()
     awaitTermination(timeoutWhen)
   }
 }
@@ -315,7 +314,7 @@ class CompletionExecutor[V](protected val executorService: ExecutorService) exte
 	  */
   def poll: Option[Future[V]] = {
     val t = completionService.poll
-    if (t == null) None else Some(t)
+    Option(t)
   }
 
   /**
@@ -334,13 +333,13 @@ class CompletionExecutor[V](protected val executorService: ExecutorService) exte
 	  */
   def poll(timeout: Long, unit: TimeUnit): Option[Future[V]] = {
     val t = completionService.poll(timeout, unit)
-    if (t == null) None else Some(t)
+    Option(t)
   }
 
   /**
 	  * polls, waiting max until the provided DateTime.
 	  */
-  def poll(till: DateTime): Option[Future[V]] = pollWaitInMillis(till.getMillis - System.currentTimeMillis)
+  def poll(till: OffsetDateTime): Option[Future[V]] = pollWaitInMillis(till.toInstant.toEpochMilli - System.currentTimeMillis)
 
   def pollWaitInMillis(timeoutMs: Long): Option[Future[V]] = poll(timeoutMs, TimeUnit.MILLISECONDS)
 }

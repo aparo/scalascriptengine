@@ -1,19 +1,18 @@
 package com.googlecode.scalascriptengine
 
+import java.time.OffsetDateTime
 import java.util.concurrent.atomic.AtomicBoolean
-
-import org.joda.time.DateTime
 
 /**
  * @author kostantinos.kougios
  *
  *         11 Jan 2012
  */
-class CompilationStatus private (
-  val startTime: DateTime,
-  val stopTime: Option[DateTime],
-  val step: CompilationStatus.Status
-) {
+class CompilationStatus private(
+                                 val startTime: OffsetDateTime,
+                                 val stopTime: Option[OffsetDateTime],
+                                 val step: CompilationStatus.Status
+                               ) {
 
   import CompilationStatus._
 
@@ -42,19 +41,19 @@ object CompilationStatus {
 
   object Failed extends Status
 
-  def notYetReady = new CompilationStatus(DateTime.now, None, NotYetReady)
+  def notYetReady = new CompilationStatus(OffsetDateTime.now, None, NotYetReady)
 
-  def started = new CompilationStatus(DateTime.now, None, ScanningSources)
+  def started = new CompilationStatus(OffsetDateTime.now, None, ScanningSources)
 
   def failed(currentStatus: CompilationStatus) =
-    new CompilationStatus(currentStatus.startTime, Some(DateTime.now), Failed)
+    new CompilationStatus(currentStatus.startTime, Some(OffsetDateTime.now), Failed)
 
   def completed(currentStatus: CompilationStatus) =
-    new CompilationStatus(currentStatus.startTime, Some(DateTime.now), Complete)
+    new CompilationStatus(currentStatus.startTime, Some(OffsetDateTime.now), Complete)
 }
 
 class CompilationStopped extends RuntimeException {
-  val time = DateTime.now
+  val time = OffsetDateTime.now
 
   override def getMessage = "compilation stopped at %s".format(time)
 

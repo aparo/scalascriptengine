@@ -1,9 +1,8 @@
 package com.googlecode.concurrent
 
+import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.{ Lock, ReadWriteLock, ReentrantLock, ReentrantReadWriteLock }
-
-import org.joda.time.DateTime
+import java.util.concurrent.locks.{Lock, ReadWriteLock, ReentrantLock, ReentrantReadWriteLock}
 
 /**
  * manages locks.
@@ -28,8 +27,8 @@ protected class ReadWriteLockEx(val lock: ReadWriteLock) {
 
   def tryReadLockAndDo[T](f: => T): Option[T] = readLock.tryLockAndDo(f)
 
-  def tryReadLockAndDo[T](when: DateTime)(f: => T): Option[T] =
-    tryReadLockAndDo(when.getMillis - System.currentTimeMillis, TimeUnit.MILLISECONDS)(f)
+  def tryReadLockAndDo[T](when: OffsetDateTime)(f: => T): Option[T] =
+    tryReadLockAndDo(when.toInstant.toEpochMilli - System.currentTimeMillis, TimeUnit.MILLISECONDS)(f)
 
   def tryReadLockAndDo[T](time: Long, unit: TimeUnit)(f: => T): Option[T] = readLock.tryLockAndDo(time, unit)(f)
 
@@ -39,8 +38,8 @@ protected class ReadWriteLockEx(val lock: ReadWriteLock) {
 
   def tryWriteLockAndDo[T](f: => T): Option[T] = writeLock.tryLockAndDo(f)
 
-  def tryWriteLockAndDo[T](when: DateTime)(f: => T): Option[T] =
-    tryWriteLockAndDo(when.getMillis - System.currentTimeMillis, TimeUnit.MILLISECONDS)(f)
+  def tryWriteLockAndDo[T](when: OffsetDateTime)(f: => T): Option[T] =
+    tryWriteLockAndDo(when.toInstant.toEpochMilli - System.currentTimeMillis, TimeUnit.MILLISECONDS)(f)
 
   def tryWriteLockAndDo[T](time: Long, unit: TimeUnit)(f: => T): Option[T] = writeLock.tryLockAndDo(time, unit)(f)
 }
@@ -48,20 +47,20 @@ protected class ReadWriteLockEx(val lock: ReadWriteLock) {
 protected class LockEx(val lock: Lock) {
 
   def lockAndDo[T](f: => T): T = {
-    lock.lock
+    lock.lock()
     try {
       f
     } finally {
-      lock.unlock
+      lock.unlock()
     }
   }
 
   def lockInterruptiblyAndDo[T](f: => T): T = {
-    lock.lockInterruptibly
+    lock.lockInterruptibly()
     try {
       f
     } finally {
-      lock.unlock
+      lock.unlock()
     }
   }
 
@@ -70,17 +69,17 @@ protected class LockEx(val lock: Lock) {
       try {
         Some(f)
       } finally {
-        lock.unlock
+        lock.unlock()
       } else None
 
-  def tryLockAndDo[T](when: DateTime)(f: => T): Option[T] =
-    tryLockAndDo(when.getMillis - System.currentTimeMillis, TimeUnit.MILLISECONDS)(f)
+  def tryLockAndDo[T](when: OffsetDateTime)(f: => T): Option[T] =
+    tryLockAndDo(when.toInstant.toEpochMilli - System.currentTimeMillis, TimeUnit.MILLISECONDS)(f)
 
   def tryLockAndDo[T](time: Long, unit: TimeUnit)(f: => T): Option[T] =
     if (lock.tryLock(time, unit))
       try {
         Some(f)
       } finally {
-        lock.unlock
+        lock.unlock()
       } else None
 }

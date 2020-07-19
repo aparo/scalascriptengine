@@ -1,11 +1,11 @@
 package com.googlecode.scalascriptengine
 
 import java.io.File
+import java.time.OffsetDateTime
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.{ AtomicBoolean, AtomicLong }
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
 import com.googlecode.concurrent.ExecutorServiceManager
-import org.joda.time.DateTime
 
 /**
  * periodically scans the source directories and if a file changed, it recompiles
@@ -18,7 +18,7 @@ import org.joda.time.DateTime
  */
 trait TimedRefresh {
   this: ScalaScriptEngine =>
-  def rescheduleAt: DateTime
+  def rescheduleAt: OffsetDateTime
 
   private val executor =
     ExecutorServiceManager.newScheduledThreadPool(1, e => error("error during recompilation of a source file", e))
@@ -26,7 +26,7 @@ trait TimedRefresh {
     refresh
   }
 
-  def shutdown = executor.shutdown
+  def shutdown() = executor.shutdown
 }
 
 /**
@@ -67,7 +67,7 @@ protected trait OnChangeRefresh extends ScalaScriptEngine {
     super.get(className)
   }
 
-  def doRefresh: Unit
+  def doRefresh():Unit
 }
 
 /**
@@ -81,7 +81,7 @@ protected trait OnChangeRefresh extends ScalaScriptEngine {
 trait RefreshSynchronously extends ScalaScriptEngine with OnChangeRefresh {
   private var lastCompiled: Long = 0
 
-  override def doRefresh: Unit = {
+  override def doRefresh(): Unit = {
     // refresh only if not already refreshing
     val time = System.currentTimeMillis
     synchronized {
@@ -106,7 +106,7 @@ trait RefreshAsynchronously extends ScalaScriptEngine with OnChangeRefresh {
   private val isCompiling = new AtomicBoolean(false)
   private val executor = ExecutorServiceManager.newSingleThreadExecutor
 
-  override def doRefresh: Unit = {
+  override def doRefresh(): Unit = {
     // refresh only if not already refreshing
     val c = isCompiling.getAndSet(true)
     if (!c) executor.submit {
@@ -121,5 +121,5 @@ trait RefreshAsynchronously extends ScalaScriptEngine with OnChangeRefresh {
     }
   }
 
-  def shutdown = executor.shutdown
+  def shutdown():Unit = executor.shutdown
 }

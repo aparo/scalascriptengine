@@ -1,9 +1,9 @@
 package com.googlecode.scalascriptengine
 
 import java.io.File
+import java.time.OffsetDateTime
 
 import com.googlecode.scalascriptengine.scalascriptengine._
-import org.joda.time.DateTime
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers._
 
@@ -18,8 +18,8 @@ class TimedRefreshPolicySuite extends AnyFunSuite {
 
   test("after compilation error, valid version is used") {
     val destDir = newTmpDir("dynamicsrc")
-    val sse = ScalaScriptEngine.timedRefresh(destDir, () => DateTime.now.plusMillis(500))
-    sse.deleteAllClassesInOutputDirectory
+    val sse = ScalaScriptEngine.timedRefresh(destDir, () => OffsetDateTime.now.plusNanos(500000000))
+    sse.deleteAllClassesInOutputDirectory()
     try {
       copyFromSource(new File(sourceDir, "v1/reload"), destDir)
       sse.refresh
@@ -31,13 +31,13 @@ class TimedRefreshPolicySuite extends AnyFunSuite {
       Thread.sleep(3000)
       sse.newInstance[TestClassTrait]("reload.Reload").result should be("v2")
     } finally {
-      sse.shutdown
+      sse.shutdown()
     }
   }
   test("code modifications are reloaded in time") {
     val destDir = newTmpDir("dynamicsrc")
-    val sse = ScalaScriptEngine.timedRefresh(destDir, () => DateTime.now.plusMillis(500))
-    sse.deleteAllClassesInOutputDirectory
+    val sse = ScalaScriptEngine.timedRefresh(destDir, () => OffsetDateTime.now.plusNanos(500000000))
+    sse.deleteAllClassesInOutputDirectory()
     try {
       copyFromSource(new File(sourceDir, "v1/reload"), destDir)
       sse.refresh
@@ -50,7 +50,7 @@ class TimedRefreshPolicySuite extends AnyFunSuite {
       Thread.sleep(3000)
       sse.newInstance[TestClassTrait]("reload.Reload").result should be("v1")
     } finally {
-      sse.shutdown
+      sse.shutdown()
     }
   }
 }

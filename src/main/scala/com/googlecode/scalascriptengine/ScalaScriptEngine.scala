@@ -2,10 +2,10 @@ package com.googlecode.scalascriptengine
 
 import java.io.File
 import java.net.URLClassLoader
+import java.time.OffsetDateTime
 
 import com.googlecode.scalascriptengine.classloading.ScalaClassLoader
-import com.googlecode.scalascriptengine.internals.{ CompilerManager, LastModMap }
-import org.joda.time.DateTime
+import com.googlecode.scalascriptengine.internals.{CompilerManager, LastModMap}
 
 /**
  * The implementation of the script engine.
@@ -156,7 +156,7 @@ class ScalaScriptEngine(val config: Config) extends Logging {
 	 * methods to create an instance of the script engine, the output dir will
 	 * be in the tmp directory.
 	 */
-  def deleteAllClassesInOutputDirectory() = {
+  def deleteAllClassesInOutputDirectory():Unit = {
     def deleteAllClassesInOutputDirectory(dir: File) {
       dir.listFiles.filter(_.getName.endsWith(".class")).foreach(_.delete)
       dir.listFiles.filter(_.isDirectory).foreach(d => deleteAllClassesInOutputDirectory(d))
@@ -308,10 +308,10 @@ object ScalaScriptEngine {
 	 *
 	 * Please call refresh before using the engine for the first time.
 	 */
-  def timedRefresh(sourcePath: File, refreshEvery: () => DateTime): ScalaScriptEngine with TimedRefresh =
+  def timedRefresh(sourcePath: File, refreshEvery: () => OffsetDateTime): ScalaScriptEngine with TimedRefresh =
     timedRefresh(defaultConfig(sourcePath), refreshEvery)
 
-  def timedRefresh(config: Config, refreshEvery: () => DateTime): ScalaScriptEngine with TimedRefresh =
+  def timedRefresh(config: Config, refreshEvery: () => OffsetDateTime): ScalaScriptEngine with TimedRefresh =
     new ScalaScriptEngine(config) with TimedRefresh {
       def rescheduleAt = refreshEvery()
     }
