@@ -38,13 +38,7 @@ developers := List(
 
 publishMavenStyle := true
 
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots".at(nexus + "content/repositories/snapshots"))
-  else
-    Some("releases".at(nexus + "service/local/staging/deploy/maven2"))
-}
+publishTo := sonatypePublishToBundle.value
 
 scalaVersion := "2.13.2"
 
@@ -54,8 +48,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
   "org.scalatest" %% "scalatest" % "3.2.0" % Test,
-  "org.scala-lang" % "scala-compiler" % scalaVersion.value//,
-//  "joda-time" % "joda-time" % "2.10.6"
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value
 )
 
 // fork in test cause there are conflicts with sbt classpath
